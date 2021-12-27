@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-^#jtt!y)ur!y_1^1e=c(@n@le2+iy80^p1h0vdwc952ku8@2x=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+BASE_URL = '127.0.0.1:8000'
 
 
 # Application definition
@@ -37,6 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+]
+
+INSTALLED_APPS += [
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -75,8 +81,12 @@ WSGI_APPLICATION = 'socialiga.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'socialiga',
+        'USER': 'postgres',
+        'PASSWORD': 'pass=123',
+        'HOST': 'localhost',
+        'PORT': 5432
     }
 }
 
@@ -123,3 +133,6 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# REST CONF
+from socialiga.restconf.main import *
