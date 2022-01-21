@@ -1,0 +1,66 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    image: mathemartins/socialiga-django
+    ports:
+      - 80:8000
+    environment:
+      - POSTGRES_DB=socialiga_db
+      - POSTGRES_USER=socialiga_db
+      - POSTGRES_PASSWORD=${PASSWORD}
+      - POSTGRES_HOST=${RDS_HOST}
+    volumes:
+      - .:/app
+    depends_on:
+      - db_socialiga
+
+  db_socialiga:
+    image: postgres
+    restart: always
+    container_name: postgres_db_socialiga
+    ports:
+      - 5439:5432
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: socialiga
+        awslogs-region: us-west-2
+        awslogs-stream-prefix: socialiga-postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=socialiga_db
+      - POSTGRES_USER=socialiga_db
+      - POSTGRES_PASSWORD=pass=123
+
+  celery:
+    restart: always
+    build:
+      context: .
+    command: 'celery -A socialiga worker -B --loglevel=info --without-mingle'
+    volumes:
+      - .:/app
+    environment:
+      - DB_HOST=db_socialiga
+      - DB_NAME=backend
+      - DB_USER=socialiga
+      - DB_PASS=pass=123
+    depends_on:
+      - backend
+      - redis
+      - db_socialiga
+
+  redis:
+    image: redis
+    restart: unless-stopped
+    command: redis-server --bind redis --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly yes
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
