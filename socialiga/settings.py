@@ -51,6 +51,8 @@ INSTALLED_APPS += [
     'accounts',
     'billing',
     'blog',
+    'event',
+    'analytics',
 ]
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'

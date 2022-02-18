@@ -126,3 +126,94 @@ class UserPublicSerializer(serializers.ModelSerializer):
     def get_uri(self, obj):
         request = self.context.get('request')
         return api_reverse("api-user:detail", kwargs={"username": obj.username}, request=request)
+
+
+class ChoiceField(serializers.ChoiceField):
+
+    def to_representation(self, obj):
+        if obj == '' and self.allow_blank:
+            return obj
+        return self._choices[obj]
+
+    def to_internal_value(self, data):
+        # To support inserts with the value
+        if data == '' and self.allow_blank:
+            return ''
+
+        for key, val in self._choices.items():
+            if val == data:
+                return key
+        self.fail('invalid_choice', input=data)
+
+
+class VendorRegisterSerializer(serializers.ModelSerializer):
+    firstName = serializers.CharField(write_only=True)
+    lastName = serializers.CharField(write_only=True)
+    name = serializers.CharField(write_only=True)
+    # account_type = ChoiceField(choices=Profile.ACCOUNT_TYPE)
+    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+    token = serializers.SerializerMethodField(read_only=True)
+    expires = serializers.SerializerMethodField(read_only=True)
+    message = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        error_message = ''
+        fields = [
+            'username',
+            'firstName',
+            'lastName',
+            'name',
+            'email',
+            'password',
+            'password2',
+            'token',
+            'expires',
+            'message',
+        ]
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def get_message(self, obj):
+        return "Thank you for registering"
+
+    def get_expires(self, obj):
+        return timezone.now() + expire_delta - datetime.timedelta(seconds=200)
+
+    def validate_email(self, value):
+        qs = User.objects.filter(email__iexact=value)
+        if qs.exists():
+            raise serializers.ValidationError("User with this email already exists")
+        return value
+
+    def get_token(self, obj):  # instance of the model
+        user = obj
+        payload = jwt_payload_handler(user)
+        return jwt_encode_handler(payload)
+
+    def validate(self, data):
+        pw = data.get('password', )
+        pw2 = data.pop('password2')
+        if pw != pw2:
+            raise serializers.ValidationError("Passwords must match")
+        return data
+
+    def create(self, validated_data: dict):
+        print(validated_data, type(validated_data))
+        user_obj = User(
+            email=validated_data.get('email', ),
+            username=validated_data.get('username', ),
+            first_name=validated_data.get('firstName', ),
+            last_name=validated_data.get('lastName', ),
+            # first_name=str(validated_data.get('fullName')).split()[0],
+            # last_name=str(validated_data.get('fullName')).split()[1],
+        )
+        user_obj.set_password(validated_data.get('password', ))
+        user_obj.is_active = True
+        user_obj.save()
+
+        # profile created when user account finished creating and profile account-type updated below
+        profile: Profile = Profile.objects.get(user=user_obj)
+        profile.account_type = validated_data.get("accountType", )
+        profile.save()
+
+        return user_obj

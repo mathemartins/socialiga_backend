@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/user/', include(('accounts.api.user.urls', 'api-user'), namespace='api-user')),
     # path('api/billing/', include(('billing.api.urls', 'api-billing'), namespace='api-billing')),
     path('api/blog/', include(('blog.api.urls', 'api-blog'), namespace='api-blog')),
+    path('api/events/', include(('event.api.urls', 'api-events'), namespace='api-events')),
 ]
 
 # authentication urls

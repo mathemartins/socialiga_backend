@@ -1,11 +1,9 @@
 from django.urls import path
 from blog.api.views import (
-    BlogPostListAPIView
+    BlogPostListAPIView, BlogPostRUDAPIView
 )
 
 urlpatterns = [
     path('', BlogPostListAPIView.as_view(), name='blog-post-list'),
-    # path('<str:slug>/', blog_post_detail_view),
-    # path('<str:slug>/edit/', blog_post_update_view),
-    # path('<str:slug>/delete/', blog_post_delete_view),
+    path('<str:slug>/', BlogPostRUDAPIView.as_view(), name='blog-post-retrieve-update-delete'),
 ]
