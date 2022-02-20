@@ -41,9 +41,15 @@ class BlogPostManager(models.Manager):
 
 
 class BlogPost(models.Model):  # blogpost_set -> queryset
+    CATEGORY = (
+        ('FootBall', 'FootBall'),
+        ('Food and Drinks', 'Food and Drinks'),
+        ('Housing and Real Estates', 'Housing and Real Estates'),
+    )
     user = models.ForeignKey(User, default=1, null=True, on_delete=models.SET_NULL)
     image = models.ImageField(upload_to='image/', blank=True, null=True)
     title = models.CharField(max_length=120)
+    category = models.CharField(choices=CATEGORY, max_length=300, blank=True, null=True)
     slug = models.SlugField(unique=True)  # hello world -> hello-world
     content = models.TextField(null=True, blank=True)
     publish_date = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
