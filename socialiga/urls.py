@@ -15,8 +15,13 @@ Including another URLconf
 """
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth.views import LogoutView
 from django.urls import path, include, re_path
 from django.views.generic import RedirectView, TemplateView
+
+from analytics.views import SalesView, SalesAjaxView
+from carts.api.views import cart_detail_api_view
+from orders.api.views import LibraryView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,6 +30,18 @@ urlpatterns = [
     path('api/billing/', include(('billing.api.urls', 'api-billing'), namespace='api-billing')),
     path('api/blog/', include(('blog.api.urls', 'api-blog'), namespace='api-blog')),
     path('api/events/', include(('event.api.urls', 'api-events'), namespace='api-events')),
+    path('api/products/', include(('products.api.urls', 'api-products'), namespace='api-products')),
+    path('api/order/', include(('orders.api.urls', 'api-order'), namespace='api-order')),
+    path('api/analytics/sales/', SalesView.as_view(), name='sales-analytics'),
+    path('api/analytics/sales/data/', SalesAjaxView.as_view(), name='sales-analytics-data'),
+    # path('api/checkout/address/create/', checkout_address_create_view, name='checkout_address_create'),
+    # path('api/checkout/address/reuse/', checkout_address_reuse_view, name='checkout_address_reuse'),
+    path('api/logout/', LogoutView.as_view(), name='logout'),
+    path('api/cart/', cart_detail_api_view, name='api-cart'),
+    path('api/cart/info/', include(('carts.api.urls', 'api-cart'), namespace='api-cart')),
+    # path('api/billing/payment-method/', payment_method_view, name='billing-payment-method'),
+    # path('api/billing/payment-method/create/', payment_method_createview, name='billing-payment-method-endpoint'),
+    path('api/library/', LibraryView.as_view(), name='library'),
 ]
 
 # authentication urls

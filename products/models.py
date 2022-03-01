@@ -1,12 +1,15 @@
 import random
 import os
 
+from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.db.models.signals import pre_save, post_save
 from django.urls import reverse
 
 from socialiga.utils import unique_slug_generator, get_filename
+
+User = settings.AUTH_USER_MODEL
 
 
 def get_filename_ext(filepath):
@@ -63,6 +66,7 @@ class ProductManager(models.Manager):
 
 
 class Product(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     title = models.CharField(max_length=120)
     slug = models.SlugField(blank=True, unique=True)
     description = models.TextField()
@@ -99,4 +103,3 @@ def product_pre_save_receiver(sender, instance, *args, **kwargs):
 
 
 pre_save.connect(product_pre_save_receiver, sender=Product)
-
