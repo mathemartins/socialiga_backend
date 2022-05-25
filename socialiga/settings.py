@@ -214,4 +214,4 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_FRAME_DENY = False
 
 # REST CONF
-from socialiga.restconf.main import *
+from socialiga.restconf.main import * # noqa

@@ -3,23 +3,41 @@ from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import APIView
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+
+from accounts.models import Profile
 from analytics.mixins import ObjectViewedMixin
 from carts.models import Cart
-
 from products.api.mixins import IsVendor
 from products.api.serializers import ProductSerializer
 from products.models import Product
 
 
-class ProductCreateAPIView(IsVendor, CreateAPIView):
+class ProductCreateAPIView(CreateAPIView):
     authentication_classes = [BasicAuthentication, SessionAuthentication, JSONWebTokenAuthentication]
     permission_class = IsAuthenticated
     serializer_class = ProductSerializer
 
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+    def initial(self, request, *args, **kwargs):
+        profile_obj: Profile = Profile.objects.get(user=self.request.user)
+        if str(profile_obj.account_type) != "VENDOR":
+            return Response({'message': 'Cannot perform this action'}, status=status.HTTP_403_FORBIDDEN)
+
     def perform_create(self, serializer):
+        print(serializer.validated_data)
         serializer.partial = True
         serializer.save(user=self.request.user)
+
+# class ProductCreateAPIView(APIView):
+#     authentication_classes = [JSONWebTokenAuthentication,]
+#     serializer_class = ProductSerializer
+#
+#     def post(self, request, *args, **kwargs):
+#         print(request.data)
 
 
 class ProductFeaturedListAPIView(ListAPIView):
